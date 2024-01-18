@@ -101,32 +101,109 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_trace(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
-[SYS_fork]    sys_fork,
-[SYS_exit]    sys_exit,
-[SYS_wait]    sys_wait,
-[SYS_pipe]    sys_pipe,
-[SYS_read]    sys_read,
-[SYS_kill]    sys_kill,
-[SYS_exec]    sys_exec,
-[SYS_fstat]   sys_fstat,
-[SYS_chdir]   sys_chdir,
-[SYS_dup]     sys_dup,
-[SYS_getpid]  sys_getpid,
-[SYS_sbrk]    sys_sbrk,
-[SYS_sleep]   sys_sleep,
-[SYS_uptime]  sys_uptime,
-[SYS_open]    sys_open,
-[SYS_write]   sys_write,
-[SYS_mknod]   sys_mknod,
-[SYS_unlink]  sys_unlink,
-[SYS_link]    sys_link,
-[SYS_mkdir]   sys_mkdir,
-[SYS_close]   sys_close,
+    [SYS_fork] sys_fork,
+    [SYS_exit] sys_exit,
+    [SYS_wait] sys_wait,
+    [SYS_pipe] sys_pipe,
+    [SYS_read] sys_read,
+    [SYS_kill] sys_kill,
+    [SYS_exec] sys_exec,
+    [SYS_fstat] sys_fstat,
+    [SYS_chdir] sys_chdir,
+    [SYS_dup] sys_dup,
+    [SYS_getpid] sys_getpid,
+    [SYS_sbrk] sys_sbrk,
+    [SYS_sleep] sys_sleep,
+    [SYS_uptime] sys_uptime,
+    [SYS_open] sys_open,
+    [SYS_write] sys_write,
+    [SYS_mknod] sys_mknod,
+    [SYS_unlink] sys_unlink,
+    [SYS_link] sys_link,
+    [SYS_mkdir] sys_mkdir,
+    [SYS_close] sys_close,
+    [SYS_trace] sys_trace,
 };
+
+static void get_name(char name[], int syscall_num)
+{
+  switch (syscall_num)
+  {
+  case SYS_fork:
+    strncpy(name, "fork", 5);
+    break;
+  case SYS_exit:
+    strncpy(name, "exit", 5);
+    break;
+  case SYS_wait:
+    strncpy(name, "wait", 5);
+    break;
+  case SYS_pipe:
+    strncpy(name, "pipe", 5);
+    break;
+  case SYS_read:
+    strncpy(name, "read", 5);
+    break;
+  case SYS_kill:
+    strncpy(name, "kill", 5);
+    break;
+  case SYS_exec:
+    strncpy(name, "exec", 5);
+    break;
+  case SYS_fstat:
+    strncpy(name, "fstat", 6);
+    break;
+  case SYS_chdir:
+    strncpy(name, "chdir", 6);
+    break;
+  case SYS_dup:
+    strncpy(name, "dup", 4);
+    break;
+  case SYS_getpid:
+    strncpy(name, "getpid", 7);
+    break;
+  case SYS_sbrk:
+    strncpy(name, "sbrk", 5);
+    break;
+  case SYS_sleep:
+    strncpy(name, "sleep", 6);
+    break;
+  case SYS_uptime:
+    strncpy(name, "uptime", 7);
+    break;
+  case SYS_open:
+    strncpy(name, "open", 5);
+    break;
+  case SYS_write:
+    strncpy(name, "write", 6);
+    break;
+  case SYS_mknod:
+    strncpy(name, "mknod", 6);
+    break;
+  case SYS_unlink:
+    strncpy(name, "unlink", 7);
+    break;
+  case SYS_link:
+    strncpy(name, "link", 5);
+    break;
+  case SYS_mkdir:
+    strncpy(name, "mkdir", 6);
+    break;
+  case SYS_close:
+    strncpy(name, "close", 6);
+    break;
+  case SYS_trace:
+    strncpy(name, "trace", 6);
+    break;
+  default:
+    strncpy(name, "unknown", 8);
+  }
+}
 
 void
 syscall(void)
@@ -139,6 +216,13 @@ syscall(void)
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
+    if (((p->tracestate >> num) & 1) == 1)
+    {
+      char syscall_name[256];
+      get_name(syscall_name, num);
+
+      printf("syscall %s -> %d\n", syscall_name, p->pid);
+    }
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);
