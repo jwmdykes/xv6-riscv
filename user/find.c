@@ -69,7 +69,6 @@ cleanup:
 
 int main(int argc, char *argv[])
 {
-    int fd;
     struct stat st;
 
     if (argc <= 2)
@@ -78,8 +77,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    fd = open(argv[1], 0);
-    fstat(fd, &st);
+    stat(argv[1], &st);
     if (st.type != T_DIR)
     {
         fprintf(2, "Not a directory\n");
