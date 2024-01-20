@@ -221,7 +221,7 @@ syscall(void)
       char syscall_name[256];
       get_name(syscall_name, num);
 
-      printf("syscall %s -> %d\n", syscall_name, p->pid);
+      printf("%d: syscall %s -> %d\n", p->pid, syscall_name, p->trapframe->a0);
     }
   } else {
     printf("%d %s: unknown sys call %d\n",
